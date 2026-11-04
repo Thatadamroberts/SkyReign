@@ -96,6 +96,8 @@ img.icon { width: 40px; height: 40px; image-rendering: auto; }
 .hud-counts .gold b { color: var(--gold); }
 i.coin { width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3c0, #ffd75a 45%, #b8862e); box-shadow: 0 0 6px rgba(255, 215, 90, 0.7); display: inline-block; }
 i.skull { width: 15px; height: 15px; display: inline-block; background: var(--ico-skull) center/contain no-repeat; }
+#phase { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #f4d58a; margin-top: -2px; }
+#phase.night { color: #a9c4ff; text-shadow: 0 0 8px rgba(120,160,255,0.7); }
 #gold.bump { animation: bump 0.25s ease; display: inline-block; }
 @keyframes bump { 50% { transform: scale(1.35); color: #fff; } }
 
@@ -114,6 +116,7 @@ i.skull { width: 15px; height: 15px; display: inline-block; background: var(--ic
 .announce-msg.boss { color: #e7a6ff; font-size: clamp(24px, 4vw, 48px); text-shadow: 0 0 22px rgba(170, 60, 255, 0.9), 0 3px 4px #000; }
 .announce-msg.elite { color: #ffd75a; }
 .announce-msg.good { color: #9ff0a8; font-size: clamp(16px, 2.4vw, 28px); }
+.announce-msg.night { color: #b9ccff; text-shadow: 0 0 22px rgba(90,120,255,0.9), 0 3px 4px #000; }
 .announce-msg.level { color: #9fd8ff; font-size: clamp(16px, 2.4vw, 28px); }
 @keyframes announce { 0% { opacity: 0; transform: scale(1.6); } 10% { opacity: 1; transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-20px); } }
 

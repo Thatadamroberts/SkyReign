@@ -135,6 +135,7 @@
     ctx.lineJoin = 'round';
 
     const wt = cfg.wallTier, at = cfg.armorTier;
+    const lights = []; // light sources for the night pass (castle-local coords)
     const a = R * 0.78, b = R * 0.36;
     const WH = R * (0.26 + 0.045 * wt);
     const th = R * 0.1;
@@ -215,6 +216,7 @@
     tips.forEach((t, i) => {
       if (i % 2) return;
       const h = R * (0.18 + U.hash2(i, 4, 5) * 0.12);
+      lights.push({ x: t.x, y: t.y + h * 0.2, r: 22, rgb: '110,200,255', a: 0.45, pulse: true });
       ctx.save();
       ctx.shadowColor = '#6fd0ff'; ctx.shadowBlur = 8;
       const cg = ctx.createLinearGradient(t.x - 4, t.y - h, t.x + 4, t.y + h);
@@ -309,6 +311,7 @@
       ctx.beginPath(); ctx.moveTo(cx - w / 2 - 2, cy - h); ctx.lineTo(cx, cy - h - R * 0.2); ctx.lineTo(cx + w / 2 + 2, cy - h); ctx.closePath(); ctx.fill();
       ctx.save(); ctx.shadowColor = '#ffd76a'; ctx.shadowBlur = 6;
       ctx.fillStyle = '#ffe28a'; ctx.beginPath(); ctx.arc(cx, cy - h * 0.55, w * 0.16, 0, TAU); ctx.fill(); ctx.restore();
+      lights.push({ x: cx, y: cy - h * 0.55, r: 20, rgb: '255,220,120', a: 0.6 });
       ctx.strokeStyle = '#8a6326'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.arc(cx, cy - h * 0.55, w * 0.16, 0, TAU); ctx.stroke();
       // spire
       const sh = R * (0.25 + 0.12 * cfg.regenTier);
@@ -323,6 +326,7 @@
       ctx.save(); ctx.shadowColor = '#c78bff'; ctx.shadowBlur = 10;
       ctx.fillStyle = '#d6a8ff';
       ctx.beginPath(); ctx.moveTo(cx, cy - h - 10); ctx.lineTo(cx + 4, cy - h - 3); ctx.lineTo(cx, cy - h + 2); ctx.lineTo(cx - 4, cy - h - 3); ctx.closePath(); ctx.fill();
+      lights.push({ x: cx, y: cy - h - 4, r: 26, rgb: '200,140,255', a: 0.55, pulse: true });
       ctx.restore();
     }
 
@@ -339,6 +343,7 @@
     for (let r = 0; r < rows; r++) {
       const wy = ky - KH * (0.4 + r * 0.22);
       for (const wx of [-kw * 0.25, 0, kw * 0.25]) {
+        lights.push({ x: kx + wx, y: wy + 1, r: 10, rgb: '255,180,90', a: 0.6 });
         ctx.fillStyle = '#20180f';
         ctx.beginPath(); ctx.moveTo(kx + wx - 2, wy + 4); ctx.lineTo(kx + wx - 2, wy); ctx.arc(kx + wx, wy, 2, Math.PI, 0); ctx.lineTo(kx + wx + 2, wy + 4); ctx.fill();
         ctx.fillStyle = 'rgba(255,190,90,0.85)'; ctx.fillRect(kx + wx - 1.1, wy - 0.5, 2.2, 3.8);
@@ -375,6 +380,7 @@
     if (at >= 4) { ctx.fillStyle = '#d4a843'; ctx.fillRect(-a, fy - 0.5, a * 2, 1.2); }
     // gate
     const gw = R * 0.22, gh = WH * 0.8;
+    lights.push({ x: 0, y: b - gh * 0.4, r: 18, rgb: '255,150,70', a: 0.45 });
     ctx.fillStyle = '#1a130c';
     ctx.beginPath(); ctx.moveTo(-gw / 2, b); ctx.lineTo(-gw / 2, b - gh + gw / 2); ctx.arc(0, b - gh + gw / 2, gw / 2, Math.PI, 0); ctx.lineTo(gw / 2, b); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = '#5b5f69'; ctx.lineWidth = 0.7;
@@ -411,7 +417,7 @@
     fctx.fillRect(0, 0, flash.width, flash.height);
 
     return {
-      canvas, flash, S, W, H, ox: halfW, oy: top, mounts, R, rx, ry,
+      canvas, flash, S, W, H, ox: halfW, oy: top, mounts, lights, R, rx, ry,
       topY: -Math.max(KH + kd, TH) - R * 0.5,
       bottomY: R * 1.4,
     };

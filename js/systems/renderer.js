@@ -171,6 +171,9 @@
       // ---- fx
       game.fx.drawWorld(ctx);
 
+      // ---- night lighting pass (no-op by day)
+      SR.Night.draw(ctx, game, this, inView);
+
       // health bars
       for (const e of ground.concat(air)) {
         if (e.boss || e.hp >= e.maxHp) continue;
@@ -182,11 +185,12 @@
 
       // ---- screen space overlays
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      SR.Clouds.draw(ctx, 1, cam.x, cam.y, this.w, this.h, z, rt);
+      SR.Clouds.draw(ctx, 1, cam.x, cam.y, this.w, this.h, z, rt, 1 - 0.7 * (game.state === 'menu' ? 0 : game.night || 0));
       // vignette
       const vg = ctx.createRadialGradient(this.w / 2, this.h / 2, Math.min(this.w, this.h) * 0.35, this.w / 2, this.h / 2, Math.max(this.w, this.h) * 0.75);
       vg.addColorStop(0, 'rgba(10,15,30,0)'); vg.addColorStop(1, 'rgba(10,15,30,0.55)');
       ctx.fillStyle = vg; ctx.fillRect(0, 0, this.w, this.h);
+      SR.Night.vignette(ctx, game, this.w, this.h);
       if (game.state !== 'menu') {
         const frac = c.hp / c.stats.maxHp;
         const hurt = Math.max(c.flash * 0.9, frac < 0.3 ? (0.25 + Math.sin(rt * 5) * 0.12) * (1 - frac / 0.3) : 0);

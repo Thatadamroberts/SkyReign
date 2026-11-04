@@ -37,6 +37,7 @@
       const s = SR.Save.data.settings;
       SR.Audio.setEnabled(s.sound);
       SR.Audio.setVolume(s.volume);
+      SR.Audio.setAmbience(s.ambience);
     },
 
     // ------------------------------------------------------------ lifecycle
@@ -51,6 +52,7 @@
       this.resetWorld();
       this.director = null;
       this.time = 0;
+      this.night = 0;
       // A fully fortified showcase castle drifts behind the menu.
       const c = new SR.Castle();
       c.stats.maxHp = c.baseMaxHp * 2.3; c.hp = c.stats.maxHp;
@@ -102,6 +104,8 @@
         this.victoryTimer = 0;
         this.shopHinted = false;
         this.director = new SR.Director(this);
+        this.night = 0;
+        SR.Night.reset();
         this.camera.x = c.x; this.camera.y = c.y;
         SR.Terrain.pregen(c.x, c.y, 1100);
         c.ensureArt();
@@ -150,6 +154,9 @@
         else if (this.state === 'menu') this.updateMenu(dt);
         else if (this.state === 'gameover') this.fx.update(dt);
         this.shakeAmt = Math.max(0, this.shakeAmt - dt * 30);
+        const st = this.state;
+        const ambMode = document.hidden ? 'off' : st === 'playing' ? 'play' : st === 'menu' ? 'menu' : 'dim';
+        SR.Ambience.update(dt, st === 'menu' ? 0 : this.night || 0, ambMode);
         SR.Renderer.draw(this);
         if (this.state !== 'menu' && this.state !== 'gameover') SR.UI.updateHUD(this);
       } catch (err) {
@@ -208,6 +215,7 @@
 
       c.update(dt, this);
       this.director.update(dt);
+      SR.Night.update(this, dt);
 
       for (let i = 0; i < this.enemies.length; i++) {
         const e = this.enemies[i];
