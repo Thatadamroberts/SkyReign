@@ -196,10 +196,10 @@
       this.layers = [mk(8, 1.25, 0.26, 1.6), mk(6, 1.7, 0.14, 2.6)];
     },
     // Screen-space draw. camX/camY are world camera centre; zoom is world->screen.
-    draw(ctx, layer, camX, camY, w, h, zoom, time) {
+    draw(ctx, layer, camX, camY, w, h, zoom, time, alphaMul = 1) {
       const L = this.layers[layer];
       if (!L) return;
-      ctx.globalAlpha = L.alpha;
+      ctx.globalAlpha = L.alpha * alphaMul;
       const wrap = L.wrap;
       for (const c of L.arr) {
         const cw = c.sp.width * c.s * zoom, chh = c.sp.height * c.s * zoom;

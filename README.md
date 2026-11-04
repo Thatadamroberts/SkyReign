@@ -53,6 +53,8 @@ Then visit http://localhost:8000.
   - Armour adds iron bands, shields and rim spikes.
   - Regeneration adds a chapel, pickup radius adds a lodestone spire, and movement speed adds sails.
   - Banners appear as you level up.
+- **Day and night**: every four minutes night falls for about 90 seconds. Night uses a darker look over the same art: a moonlit colour grade, glowing windows and levitation crystals, troops carrying torches, fog, embers and lightning. The timer panel counts down to dusk and dawn.
+- **Ambience**: generated in code, with its own volume slider in Settings. Wind plays all the time; birdsong and distant war drums play by day; crickets, owls, a low drone and thunder play at night.
 - **Meta progression**: Crowns earned each run buy permanent upgrades and new starting weapons in the Royal Archive. Progress is saved in `localStorage`.
 - **Game feel**: screen shake, projectile trails, hit flashes, explosions, damage numbers, magnetised loot, smoke and fire on a damaged castle, and falling corpses. Sound effects are generated in code with WebAudio, and there are audio hooks for adding real samples later.
 
@@ -61,11 +63,11 @@ Then visit http://localhost:8000.
 ```
 index.html            page shell + HUD markup
 css/style.css         all UI styling
-js/core/              utils (math, noise, spatial grid), audio, input
+js/core/              utils (math, noise, spatial grid), audio, ambience, input
 js/data/              weapons, enemies, upgrades, meta-progression (pure data + small hooks)
 js/art/               procedural art: castle, weapons, enemies, terrain/clouds, UI icons
 js/entities/          castle, enemy AI behaviours, visual effects
-js/systems/           director (pacing), combat (projectiles/damage), shop, renderer
+js/systems/           director (pacing), combat (projectiles/damage), shop, night (day/night lighting), renderer
 js/ui/ui.js           menus, HUD, level-up, shop, summaries
 js/game.js            state machine, main loop, gameplay API
 js/main.js            entry point

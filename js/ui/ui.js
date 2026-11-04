@@ -178,6 +178,7 @@
               <h4>Grow</h4><p>Fallen foes drop <b>experience gems</b> and <b>gold</b>. Fly near them to collect. Each level lets you choose one of three upgrades — rarer ones are far stronger.</p>
               <h4>Build</h4><p>Press <b>B</b> to visit the Sky Merchant. Buy new weapons, upgrade each weapon's damage, speed, range, projectiles and special ability, repair the castle and raise new towers.</p>
               <h4>Evolve</h4><p>Your castle physically grows: new towers for each weapon slot, taller walls, iron plating, chapels, sails and spires. Slots also unlock at levels ${SR.SLOT_LEVELS.join(', ')}.</p>
+              <h4>Nightfall</h4><p>Every four minutes night falls over the kingdom for about a minute and a half. The army marches by torchlight, fog rolls in and storms break overhead. The timer panel shows when dusk and dawn arrive. Ambience has its own volume slider in Settings.</p>
               <h4>Survive</h4><p>Army surges come every minute, elites (gold crowns) drop treasure chests, and a General attacks every 5 minutes. Defeat the King's Champion at 20:00 to win — or keep flying in endless mode.</p>
               <h4>Ascend</h4><p>When the castle falls you earn <b>Crowns</b>. Spend them in the Royal Archive on permanent upgrades and new starting weapons.</p>
               <h4>Tips</h4><p>Hold <b>Shift</b> to see your pickup radius. Trebuchets telegraph where boulders land — move! Engineers heal and shield nearby troops; kill them first.</p>
@@ -196,7 +197,8 @@
             <div class="window-head"><h2>Settings</h2></div>
             <div class="settings-list">
               <div class="setting">Sound effects ${t('sound')}</div>
-              <div class="setting">Volume <input type="range" id="vol" min="0" max="1" step="0.05" value="${s.volume}"></div>
+              <div class="setting"><label for="vol">Effects volume</label> <input type="range" id="vol" min="0" max="1" step="0.05" value="${s.volume}"></div>
+              <div class="setting"><label for="amb">Ambience volume</label> <input type="range" id="amb" min="0" max="1" step="0.05" value="${s.ambience}"></div>
               <div class="setting">Screen shake ${t('shake')}</div>
               <div class="setting">Damage numbers ${t('damageNumbers')}</div>
             </div>
@@ -210,6 +212,8 @@
       }, this.current === 'menu' ? 'menu-bg' : '');
       $('vol').addEventListener('input', (e) => { s.volume = parseFloat(e.target.value); SR.Game.applySettings(); });
       $('vol').addEventListener('change', () => { SR.Save.save(); SR.Audio.play('xp'); });
+      $('amb').addEventListener('input', (e) => { s.ambience = parseFloat(e.target.value); SR.Game.applySettings(); });
+      $('amb').addEventListener('change', () => { SR.Save.save(); SR.Ambience.bird(); });
     },
 
     // ---------- pause ----------
@@ -452,6 +456,8 @@
         const b = $('level-badge'); b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
       }
       this.set('timer', U.formatTime(g.time));
+      const ph = SR.Night.phaseInfo(g.time);
+      if (this.set('phase', `${ph.label} · ${ph.next} in ${U.formatTime(ph.left)}`)) $('phase').className = ph.night ? 'night' : 'day';
       if (this.set('gold', U.formatNum(c.gold))) { const el = $('gold'); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
       this.set('kills', U.formatNum(g.stats.kills));
       this.set('hud-armor', U.pct(s.armor));

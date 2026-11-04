@@ -27,7 +27,7 @@
     best: { time: 0, kills: 0, level: 0, bosses: 0 },
     runs: 0,
     victories: 0,
-    settings: { sound: true, volume: 0.6, shake: true, damageNumbers: true },
+    settings: { sound: true, volume: 0.6, ambience: 0.5, shake: true, damageNumbers: true },
   });
 
   SR.Save = {

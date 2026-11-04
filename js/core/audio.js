@@ -9,6 +9,8 @@
     master: null,
     enabled: true,
     volume: 0.6,
+    ambience: 0.5,
+    ambBus: null,
     last: {},
     listeners: [],
     noiseBuf: null,
@@ -24,15 +26,25 @@
         const comp = this.ctx.createDynamicsCompressor();
         this.master.connect(comp);
         comp.connect(this.ctx.destination);
+        // ambience has its own bus (and slider), bypassing the effects compressor
+        this.ambBus = this.ctx.createGain();
+        this.ambBus.gain.value = this.enabled ? this.ambience * 0.6 : 0;
+        this.ambBus.connect(this.ctx.destination);
         const len = this.ctx.sampleRate * 1.0;
         this.noiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
         const d = this.noiseBuf.getChannelData(0);
         for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-      } catch (e) { this.ctx = null; }
+      } catch (e) { this.ctx = null; return; }
+      if (SR.Ambience) SR.Ambience.start();
     },
     on(fn) { this.listeners.push(fn); },
     setVolume(v) { this.volume = v; if (this.master) this.master.gain.value = v * 0.45; },
-    setEnabled(b) { this.enabled = b; },
+    setAmbience(v) { this.ambience = v; this.applyAmbience(); },
+    setEnabled(b) { this.enabled = b; this.applyAmbience(); },
+    applyAmbience() {
+      if (!this.ambBus) return;
+      this.ambBus.gain.setTargetAtTime(this.enabled ? this.ambience * 0.6 : 0, this.ctx.currentTime, 0.1);
+    },
 
     play(name, opts = {}) {
       for (const fn of this.listeners) { try { if (fn(name, opts) === true) return; } catch (e) { /* ignore hook errors */ } }
@@ -46,7 +58,7 @@
       try { def.fn(this, opts); } catch (e) { /* never let audio break the game */ }
     },
 
-    tone(freq, dur, { type = 'sine', vol = 0.3, slide = null, delay = 0, attack = 0.005 } = {}) {
+    tone(freq, dur, { type = 'sine', vol = 0.3, slide = null, delay = 0, attack = 0.005, out = null } = {}) {
       const c = this.ctx, t = c.currentTime + delay;
       const o = c.createOscillator(), g = c.createGain();
       o.type = type;
@@ -55,10 +67,10 @@
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(vol, t + attack);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(this.master);
+      o.connect(g); g.connect(out || this.master);
       o.start(t); o.stop(t + dur + 0.02);
     },
-    noise(dur, { vol = 0.3, freq = 1000, q = 1, type = 'lowpass', delay = 0, slide = null } = {}) {
+    noise(dur, { vol = 0.3, freq = 1000, q = 1, type = 'lowpass', delay = 0, slide = null, out = null, attack = 0 } = {}) {
       const c = this.ctx, t = c.currentTime + delay;
       const s = c.createBufferSource();
       s.buffer = this.noiseBuf;
@@ -66,9 +78,11 @@
       f.type = type; f.frequency.setValueAtTime(freq, t); f.Q.value = q;
       if (slide) f.frequency.exponentialRampToValueAtTime(Math.max(30, slide), t + dur);
       const g = c.createGain();
-      g.gain.setValueAtTime(vol, t);
+      if (attack > 0) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack); }
+      else g.gain.setValueAtTime(vol, t);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      s.connect(f); f.connect(g); g.connect(this.master);
+      s.connect(f); f.connect(g); g.connect(out || this.master);
+      s.loop = true;
       s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02);
     },
   };
