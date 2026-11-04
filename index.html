@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>SkyReign</title>
+  <meta name="description" content="A medieval fantasy roguelike survival game: pilot a floating castle and outlast the kingdom's army.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="root">
+    <canvas id="game"></canvas>
+
+    <!-- In-game HUD -->
+    <div id="hud" class="hidden">
+      <div id="xp-wrap">
+        <div id="xp-bar"><div id="xp-fill"></div></div>
+        <div id="level-badge"><span>LV</span><b id="level-num">1</b></div>
+      </div>
+      <div id="hud-left" class="panel">
+        <div class="hp-row">
+          <div id="hp-bar"><div id="hp-lag"></div><div id="hp-fill"></div><span id="hp-text">200 / 200</span></div>
+          <div id="aegis-pip" class="hidden" title="Holy Aegis ready"></div>
+        </div>
+        <div id="hud-subrow">
+          <span class="stat" title="Armour"><i class="ico ico-shield"></i><b id="hud-armor">0%</b></span>
+          <span class="stat" title="Regeneration"><i class="ico ico-heart"></i><b id="hud-regen">0</b>/s</span>
+          <span class="stat" title="Rerolls"><i class="ico ico-eye"></i><b id="hud-rerolls">0</b></span>
+        </div>
+      </div>
+      <div id="hud-right" class="panel">
+        <div id="timer">0:00</div>
+        <div class="hud-counts">
+          <span class="gold"><i class="coin"></i><b id="gold">0</b></span>
+          <span class="kills"><i class="skull"></i><b id="kills">0</b></span>
+        </div>
+      </div>
+      <div id="boss-bar" class="hidden">
+        <div id="boss-name">General</div>
+        <div id="boss-track"><div id="boss-fill"></div></div>
+      </div>
+      <div id="announce"></div>
+      <div id="weapon-bar"></div>
+      <div id="hud-buttons">
+        <button id="btn-shop" class="btn small gold-btn" title="Open the Sky Merchant (B)"><span class="key">B</span> Shop</button>
+        <button id="btn-pause" class="btn small" title="Pause (Esc)"><span class="key">Esc</span> Pause</button>
+      </div>
+      <div id="hint" class="hidden"></div>
+    </div>
+
+    <!-- Menus & overlays (populated by js/ui/ui.js) -->
+    <div id="screen" class="hidden"></div>
+    <div id="fade"></div>
+  </div>
+
+  <script src="js/core/utils.js"></script>
+  <script src="js/core/audio.js"></script>
+  <script src="js/core/input.js"></script>
+  <script src="js/data/weapons.js"></script>
+  <script src="js/data/enemies.js"></script>
+  <script src="js/data/upgrades.js"></script>
+  <script src="js/data/meta.js"></script>
+  <script src="js/art/weapons.js"></script>
+  <script src="js/art/icons.js"></script>
+  <script src="js/art/castle.js"></script>
+  <script src="js/art/enemies.js"></script>
+  <script src="js/art/world.js"></script>
+  <script src="js/entities/effects.js"></script>
+  <script src="js/entities/castle.js"></script>
+  <script src="js/entities/enemy.js"></script>
+  <script src="js/systems/director.js"></script>
+  <script src="js/systems/combat.js"></script>
+  <script src="js/systems/shop.js"></script>
+  <script src="js/systems/renderer.js"></script>
+  <script src="js/ui/ui.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
