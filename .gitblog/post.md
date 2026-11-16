@@ -2,6 +2,7 @@
 title: SkyReign
 summary: Pilot a floating castle and outlast a kingdom's army. A browser roguelike with no dependencies, where every sprite and sound is generated in code.
 featured: true
+playable: true
 imageAlt: A floating stone castle with five weapon towers fighting off knights, archers, wyverns and a trebuchet over farmland and a river
 ---
 
@@ -9,7 +10,7 @@ imageAlt: A floating stone castle with five weapon towers fighting off knights, 
 
 SkyReign is a survival roguelike that runs in the browser. You pilot a castle on a floating island, fleeing a kingdom that wants it back. You start with a single ballista. Every enemy you beat drops gold and experience, and over twenty minutes the castle grows into a sky fortress bristling with crossbows, cannons, fire towers and lightning crystals. Survive until the King's Champion arrives at 20:00 and beat him to win the run.
 
-[Play it in your browser](https://github.com/thatadamroberts/SkyReign#running). You can open `index.html` straight from disk.
+**[Play it in your browser](https://thatadamroberts.github.io/SkyReign/)**, or press Play above to play it right here. You can also download the repo and open `index.html` straight from disk.
 
 ## Why I built it
 
