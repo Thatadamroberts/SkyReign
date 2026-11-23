@@ -63,6 +63,7 @@
             <span class="crowns"><img src="${SR.Icons.get('crown')}" alt="">${d.crowns} Crowns</span>
             <span>Best flight: <b>${U.formatTime(d.best.time)}</b></span>
             <span>Most kills: <b>${d.best.kills}</b></span>
+            ${d.bestChaos.time ? `<span class="chaos-best">Chaos best: <b>${U.formatTime(d.bestChaos.time)}</b></span>` : ''}
             <span>Flights: <b>${d.runs}</b></span>
             ${d.victories ? `<span>Victories: <b>${d.victories}</b></span>` : ''}
           </div>
@@ -95,9 +96,15 @@
           <h2 class="title">Choose Your First Weapon</h2>
           <h3 class="sub">Mounted atop the keep when the castle takes flight</h3>
           <div class="cards">${cards}</div>
+          <div class="mode-pick" role="radiogroup" aria-label="Game mode">
+            <button type="button" class="mode ${d.chaos ? '' : 'on'}" role="radio" aria-checked="${!d.chaos}" data-act="mode" data-m="normal">
+              <b>Normal</b><span>Day and night over the kingdom</span></button>
+            <button type="button" class="mode chaos ${d.chaos ? 'on' : ''}" role="radio" aria-checked="${!!d.chaos}" data-act="mode" data-m="chaos">
+              <b>Chaos</b><span>${SR.CHAOS.speed}× speed · enemies deal ${SR.CHAOS.damage}× damage · endless storm · 2× Crowns</span></button>
+          </div>
           <div class="row-buttons">
             <button class="btn" data-act="back">Back</button>
-            <button class="btn gold-btn wide" data-act="go">Take Flight</button>
+            <button class="btn ${d.chaos ? 'red-btn' : 'gold-btn'} wide" data-act="go">${d.chaos ? 'Into the Storm' : 'Take Flight'}</button>
           </div>
         </div>`, {
         pick: (ds) => {
@@ -105,7 +112,8 @@
           d.startWeapon = ds.t; SR.Save.save(); SR.Audio.play('click'); this.startSelect();
         },
         back: () => { SR.Audio.play('click'); this.mainMenu(); },
-        go: () => { SR.Audio.play('buy'); SR.Game.newRun(d.startWeapon); },
+        mode: (ds) => { d.chaos = ds.m === 'chaos'; SR.Save.save(); SR.Audio.play(d.chaos ? 'warning' : 'click'); this.startSelect(); },
+        go: () => { SR.Audio.play('buy'); SR.Game.newRun(d.startWeapon, !!d.chaos); },
       }, 'menu-bg');
     },
 
@@ -179,6 +187,7 @@
               <h4>Build</h4><p>Press <b>B</b> to visit the Sky Merchant. Buy new weapons, upgrade each weapon's damage, speed, range, projectiles and special ability, repair the castle and raise new towers.</p>
               <h4>Evolve</h4><p>Your castle physically grows: new towers for each weapon slot, taller walls, iron plating, chapels, sails and spires. Slots also unlock at levels ${SR.SLOT_LEVELS.join(', ')}.</p>
               <h4>Nightfall</h4><p>Every four minutes night falls over the kingdom for about a minute and a half. The army marches by torchlight, fog rolls in and storms break overhead. The timer panel shows when dusk and dawn arrive. Ambience has its own volume slider in Settings.</p>
+              <h4>Chaos Mode</h4><p>Pick <b>Chaos</b> on the weapon screen for a harder flight: the game runs ${SR.CHAOS.speed}× faster, enemies deal ${SR.CHAOS.damage}× damage, and the whole run is one endless stormy night with battle music that races faster as time passes. Chaos earns double Crowns and keeps its own records.</p>
               <h4>Survive</h4><p>Army surges come every minute, elites (gold crowns) drop treasure chests, and a General attacks every 5 minutes. Defeat the King's Champion at 20:00 to win — or keep flying in endless mode.</p>
               <h4>Ascend</h4><p>When the castle falls you earn <b>Crowns</b>. Spend them in the Royal Archive on permanent upgrades and new starting weapons.</p>
               <h4>Tips</h4><p>Hold <b>Shift</b> to see your pickup radius. Trebuchets telegraph where boulders land — move! Engineers heal and shield nearby troops; kill them first.</p>
@@ -199,6 +208,7 @@
               <div class="setting">Sound effects ${t('sound')}</div>
               <div class="setting"><label for="vol">Effects volume</label> <input type="range" id="vol" min="0" max="1" step="0.05" value="${s.volume}"></div>
               <div class="setting"><label for="amb">Ambience volume</label> <input type="range" id="amb" min="0" max="1" step="0.05" value="${s.ambience}"></div>
+              <div class="setting"><label for="mus">Music volume <small>(Chaos Mode)</small></label> <input type="range" id="mus" min="0" max="1" step="0.05" value="${s.music}"></div>
               <div class="setting">Screen shake ${t('shake')}</div>
               <div class="setting">Damage numbers ${t('damageNumbers')}</div>
             </div>
@@ -214,6 +224,8 @@
       $('vol').addEventListener('change', () => { SR.Save.save(); SR.Audio.play('xp'); });
       $('amb').addEventListener('input', (e) => { s.ambience = parseFloat(e.target.value); SR.Game.applySettings(); });
       $('amb').addEventListener('change', () => { SR.Save.save(); SR.Ambience.bird(); });
+      $('mus').addEventListener('input', (e) => { s.music = parseFloat(e.target.value); SR.Game.applySettings(); });
+      $('mus').addEventListener('change', () => { SR.Save.save(); SR.Music.preview(); });
     },
 
     // ---------- pause ----------
@@ -376,6 +388,7 @@
       const chips = sum.weapons.map((w) => `<span class="chip"><img src="${SR.Icons.get(SR.WEAPONS[w.type].icon)}" alt="">${esc(SR.WEAPONS[w.type].name)} · Lv ${w.level} · ${U.formatNum(w.dmg)} dmg</span>`).join('');
       this.show('gameover', `
         <div class="screen-inner">
+          ${sum.chaos ? '<div class="chaos-tag">Chaos Mode · ×2 Crowns</div>' : ''}
           <h2 class="title" style="${victory ? '' : 'color:#ff8a6a'}">${victory ? 'Victory!' : 'The Castle Has Fallen'}</h2>
           <h3 class="sub">${victory ? "The King's Champion is slain — the skies are yours" : sum.newBest ? 'A new record flight!' : 'The kingdom claims its prize… for now'}</h3>
           <div class="stats-table" style="max-width:900px;margin:0 auto">
@@ -456,8 +469,13 @@
         const b = $('level-badge'); b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
       }
       this.set('timer', U.formatTime(g.time));
-      const ph = SR.Night.phaseInfo(g.time);
-      if (this.set('phase', `${ph.label} · ${ph.next} in ${U.formatTime(ph.left)}`)) $('phase').className = ph.night ? 'night' : 'day';
+      if (g.chaos) { if (this.set('phase', 'Storm · endless night')) $('phase').className = 'night'; }
+      else {
+        const ph = SR.Night.phaseInfo(g.time);
+        if (this.set('phase', `${ph.label} · ${ph.next} in ${U.formatTime(ph.left)}`)) $('phase').className = ph.night ? 'night' : 'day';
+      }
+      const ch = g.chaos ? '1' : '0';
+      if (this.hudCache.chaos !== ch) { this.hudCache.chaos = ch; $('chaos-badge').classList.toggle('hidden', !g.chaos); }
       if (this.set('gold', U.formatNum(c.gold))) { const el = $('gold'); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
       this.set('kills', U.formatNum(g.stats.kills));
       this.set('hud-armor', U.pct(s.armor));

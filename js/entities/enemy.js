@@ -9,7 +9,7 @@
     const dir = game.director;
     const elite = !!opts.elite;
     const hpMult = dir.hpMult() * (elite ? 7 : 1) * (opts.hpMult || 1);
-    const dmgMult = dir.dmgMult() * (elite ? 1.5 : 1);
+    const dmgMult = dir.dmgMult() * (elite ? 1.5 : 1) * (game.chaos ? SR.CHAOS.damage : 1);
     const scale = (elite ? 1.3 : 1) * (opts.scale || 1);
     const hp = def.hp * hpMult;
     return {

@@ -40,16 +40,23 @@
     flash: null,
     embers: [],
 
-    reset() {
-      this.prevDark = false;
-      this.lightningT = 6;
+    rain: [],
+
+    // chaos: a Chaos Mode run, which is one endless stormy night
+    reset(chaos = false) {
+      this.chaos = !!chaos;
+      this.prevDark = this.chaos; // no "night falls" banner when the storm is already raging
+      this.lightningT = this.chaos ? 2 : 6;
       this.flash = null;
       this.embers = [];
       for (let i = 0; i < 60; i++) this.embers.push({ x: Math.random(), y: Math.random(), sp: U.rand(0.02, 0.06), ph: Math.random() * 10, s: U.rand(1, 2.2) });
+      this.rain = [];
+      for (let i = 0; i < 140; i++) this.rain.push({ x: Math.random(), y: Math.random(), sp: U.rand(1.1, 1.8), len: U.rand(0.025, 0.05) });
     },
 
     // 0 = full day, 1 = full night (smoothly eased through dusk and dawn)
     level(t) {
+      if (this.chaos) return 1;
       const p = ((t % CYCLE) + CYCLE) % CYCLE;
       let k;
       if (p < DUSK) k = 0;
@@ -79,8 +86,8 @@
       if (n > 0.85) {
         this.lightningT -= dt;
         if (this.lightningT <= 0) {
-          this.lightningT = U.rand(7, 15);
-          const near = Math.random() < 0.4;
+          this.lightningT = this.chaos ? U.rand(3, 7) : U.rand(7, 15);
+          const near = Math.random() < (this.chaos ? 0.6 : 0.4);
           this.flash = { t: 0, dur: 0.35, seed: Math.floor(Math.random() * 1e6), x: game.camera.x + U.rand(-0.4, 0.4) * game.viewW, power: near ? 1 : 0.55 };
           if (SR.Ambience) SR.Ambience.thunder(near ? U.rand(0.1, 0.4) : U.rand(0.8, 1.8), near ? 1 : 0.5);
         }
@@ -208,6 +215,20 @@
       }
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = 'source-over';
+
+      // 6. driving rain in Chaos Mode (screen space, wind-slanted)
+      if (this.chaos) {
+        ctx.strokeStyle = 'rgba(175,195,235,0.35)';
+        ctx.lineWidth = Math.max(1, dpr);
+        ctx.beginPath();
+        for (const d of this.rain) {
+          const y = ((d.y + T * d.sp) % 1 + 1) % 1, x = ((d.x - y * 0.18 - T * 0.12) % 1 + 1) % 1;
+          const len = d.len * H;
+          ctx.moveTo(x * W, y * H - len);
+          ctx.lineTo(x * W - len * 0.35, y * H);
+        }
+        ctx.stroke();
+      }
       R.setWorld(ctx);
     },
 
