@@ -4,7 +4,13 @@
 (function (SR) {
   const U = SR.U, TAU = Math.PI * 2;
 
+  // Chaos Mode tuning: game time runs CHAOS_SPEED× faster and enemies deal CHAOS_DAMAGE× damage.
+  const CHAOS_SPEED = 1.5;
+  const CHAOS_DAMAGE = 2.0;
+  SR.CHAOS = { speed: CHAOS_SPEED, damage: CHAOS_DAMAGE };
+
   const Game = {
+    chaos: false,
     state: 'boot',
     time: 0,
     realTime: 0,
@@ -38,6 +44,7 @@
       SR.Audio.setEnabled(s.sound);
       SR.Audio.setVolume(s.volume);
       SR.Audio.setAmbience(s.ambience);
+      SR.Audio.setMusic(s.music);
     },
 
     // ------------------------------------------------------------ lifecycle
@@ -49,6 +56,9 @@
 
     toMenu(silent) {
       this.state = 'menu';
+      this.chaos = false;
+      SR.Night.reset(false);
+      SR.Music.stop();
       this.resetWorld();
       this.director = null;
       this.time = 0;
@@ -69,7 +79,7 @@
 
     newStats() { return { kills: 0, gold: 0, goldSpent: 0, bosses: 0, elites: 0, damage: 0, taken: 0, upgrades: 0, takenBy: {} }; },
 
-    newRun(startWeapon) {
+    newRun(startWeapon, chaos = false) {
       if (this.starting) return;
       this.starting = true;
       SR.UI.fade(true);
@@ -104,8 +114,9 @@
         this.victoryTimer = 0;
         this.shopHinted = false;
         this.director = new SR.Director(this);
-        this.night = 0;
-        SR.Night.reset();
+        this.chaos = !!chaos;
+        SR.Night.reset(this.chaos);
+        this.night = SR.Night.level(0);
         this.camera.x = c.x; this.camera.y = c.y;
         SR.Terrain.pregen(c.x, c.y, 1100);
         c.ensureArt();
@@ -114,7 +125,8 @@
         SR.UI.resetHUD();
         SR.UI.showHUD(true);
         SR.UI.fade(false);
-        SR.UI.announce('Take to the skies!', 'good');
+        if (this.chaos) { SR.UI.announce('CHAOS — the storm breaks!', 'boss'); SR.Music.start(); }
+        else SR.UI.announce('Take to the skies!', 'good');
         SR.UI.hint(('ontouchstart' in window) ? 'Drag anywhere to fly · weapons fire automatically' : 'WASD / Arrows to fly · weapons fire automatically · hold mouse to aim', 7000);
         SR.Audio.play('horn');
         SR.Save.data.runs++;
@@ -149,14 +161,19 @@
       this.realTime += dt;
       try {
         this.handleKeys();
-        if (this.state === 'playing') this.update(dt);
+        if (this.state === 'playing') {
+          // Chaos runs 1.5× faster, split into two steps so fast bolts don't skip through enemies
+          if (this.chaos) { const sdt = dt * CHAOS_SPEED / 2; this.update(sdt); if (this.state === 'playing') this.update(sdt); }
+          else this.update(dt);
+        }
         else if (this.state === 'dying') this.updateDying(dt);
         else if (this.state === 'menu') this.updateMenu(dt);
         else if (this.state === 'gameover') this.fx.update(dt);
         this.shakeAmt = Math.max(0, this.shakeAmt - dt * 30);
         const st = this.state;
         const ambMode = document.hidden ? 'off' : st === 'playing' ? 'play' : st === 'menu' ? 'menu' : 'dim';
-        SR.Ambience.update(dt, st === 'menu' ? 0 : this.night || 0, ambMode);
+        SR.Ambience.update(dt, st === 'menu' ? 0 : this.night || 0, ambMode, this.chaos && st !== 'menu');
+        this.updateMusic(dt);
         SR.Renderer.draw(this);
         if (this.state !== 'menu' && this.state !== 'gameover') SR.UI.updateHUD(this);
       } catch (err) {
@@ -463,6 +480,7 @@
       this.state = 'dying';
       this.dyingT = 0; this.boomT = 0;
       SR.Audio.play('defeat');
+      SR.Music.stop(2);
       this.announce('The castle is falling!', 'warn');
     },
 
@@ -590,6 +608,22 @@
 
     announce(text, cls) { SR.UI.announce(text, cls); },
 
+    // Chaos Mode battle music follows the run: tempo and layers rise with game time.
+    updateMusic(dt) {
+      const st = this.state;
+      const inRun = st === 'playing' || st === 'paused' || st === 'shop' || st === 'levelup' || st === 'victory';
+      if (!this.chaos || !inRun) return;
+      if (!SR.Music.playing && st === 'playing') SR.Music.start(); // e.g. audio unlocked late
+      const m = this.time / 60, c = this.castle;
+      SR.Music.update(dt, {
+        intensity: Math.min(1, m / 10),
+        tempo: 132 + 40 * Math.min(1, m / 12),
+        lowHp: c.hp / c.stats.maxHp < 0.3,
+        boss: !!(this.director && this.director.boss),
+        mode: st === 'playing' && !document.hidden ? 'play' : 'dim',
+      });
+    },
+
     // ------------------------------------------------------------ end of run
     endRun(victory) {
       const c = this.castle, d = SR.Save.data;
@@ -599,13 +633,16 @@
         taken: this.stats.taken, upgrades: this.stats.upgrades, victory: victory || this.endless,
         weapons: c.ownedWeapons().map((w) => ({ type: w.type, level: SR.weaponLevel(w), dmg: w.dmgDealt })),
       };
+      sum.chaos = this.chaos;
       sum.crowns = SR.computeCrowns(sum);
-      sum.newBest = sum.time > d.best.time;
+      const best = this.chaos ? d.bestChaos : d.best; // Chaos keeps its own records
+      sum.newBest = sum.time > best.time;
       d.crowns += sum.crowns; d.totalCrowns += sum.crowns;
-      d.best.time = Math.max(d.best.time, sum.time);
-      d.best.kills = Math.max(d.best.kills, sum.kills);
-      d.best.level = Math.max(d.best.level, sum.level);
-      d.best.bosses = Math.max(d.best.bosses, sum.bosses);
+      best.time = Math.max(best.time, sum.time);
+      best.kills = Math.max(best.kills, sum.kills);
+      best.level = Math.max(best.level, sum.level);
+      best.bosses = Math.max(best.bosses, sum.bosses);
+      SR.Music.stop();
       if (sum.victory) d.victories++;
       SR.Save.save();
       this.state = 'gameover';

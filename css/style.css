@@ -98,6 +98,20 @@ i.coin { width: 14px; height: 14px; border-radius: 50%; background: radial-gradi
 i.skull { width: 15px; height: 15px; display: inline-block; background: var(--ico-skull) center/contain no-repeat; }
 #phase { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #f4d58a; margin-top: -2px; }
 #phase.night { color: #a9c4ff; text-shadow: 0 0 8px rgba(120,160,255,0.7); }
+#chaos-badge { display: inline-block; margin: 3px 0 1px; padding: 1px 9px; border-radius: 3px; font-size: 11px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; color: #fff; background: linear-gradient(180deg, #d8433a, #7a1c16); border: 1px solid #ff9a7a; animation: chaosPulse 1.1s ease-in-out infinite alternate; }
+@keyframes chaosPulse { from { box-shadow: 0 0 4px rgba(255,80,50,0.4); } to { box-shadow: 0 0 14px rgba(255,80,50,0.95); } }
+.mode-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 640px; margin: 4px auto 0; }
+.mode { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; text-align: left; padding: 11px 14px; border-radius: 7px; cursor: pointer; background: rgba(8, 12, 24, 0.7); border: 1px solid rgba(240, 207, 122, 0.3); color: var(--parch); font-family: var(--body); }
+.mode b { font-family: var(--display); font-size: 17px; letter-spacing: 0.08em; }
+.mode span { font-size: 15px; color: #b9c6e0; line-height: 1.25; }
+.mode:hover { border-color: var(--gold); }
+.mode:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.mode.on { border-color: var(--gold); box-shadow: 0 0 16px rgba(240, 207, 122, 0.4); background: rgba(40, 56, 100, 0.8); }
+.mode.chaos b { color: #ff9a7a; }
+.mode.chaos.on { border-color: #ff7a5a; box-shadow: 0 0 20px rgba(255, 90, 60, 0.55); background: linear-gradient(180deg, rgba(110, 28, 22, 0.85), rgba(40, 10, 10, 0.9)); }
+.chaos-tag { display: inline-block; font-family: var(--display); font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: #ffb09a; border: 1px solid #ff7a5a; border-radius: 4px; padding: 3px 10px; margin-bottom: 10px; }
+.chaos-best b { color: #ff9a7a !important; }
+.setting small { color: #8a9bbd; font-size: 0.75em; }
 #gold.bump { animation: bump 0.25s ease; display: inline-block; }
 @keyframes bump { 50% { transform: scale(1.35); color: #fff; } }
 
@@ -291,5 +305,6 @@ input[type=range] { accent-color: var(--gold); width: 160px; }
   #hud-buttons { bottom: 10px; }
   #hint { bottom: 150px; font-size: 15px; width: 90vw; }
   .reroll-row .dim { display: none; }
+  .mode-pick { grid-template-columns: minmax(0, 1fr); }
   #hud-buttons .key { display: none; }
 }

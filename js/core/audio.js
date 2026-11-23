@@ -10,7 +10,9 @@
     enabled: true,
     volume: 0.6,
     ambience: 0.5,
+    music: 0.6,
     ambBus: null,
+    musicBus: null,
     last: {},
     listeners: [],
     noiseBuf: null,
@@ -30,6 +32,10 @@
         this.ambBus = this.ctx.createGain();
         this.ambBus.gain.value = this.enabled ? this.ambience * 0.6 : 0;
         this.ambBus.connect(this.ctx.destination);
+        // Chaos Mode music has its own bus too (Settings → Music volume)
+        this.musicBus = this.ctx.createGain();
+        this.musicBus.gain.value = this.enabled ? this.music * 0.5 : 0;
+        this.musicBus.connect(this.ctx.destination);
         const len = this.ctx.sampleRate * 1.0;
         this.noiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
         const d = this.noiseBuf.getChannelData(0);
@@ -39,11 +45,15 @@
     },
     on(fn) { this.listeners.push(fn); },
     setVolume(v) { this.volume = v; if (this.master) this.master.gain.value = v * 0.45; },
-    setAmbience(v) { this.ambience = v; this.applyAmbience(); },
-    setEnabled(b) { this.enabled = b; this.applyAmbience(); },
-    applyAmbience() {
-      if (!this.ambBus) return;
-      this.ambBus.gain.setTargetAtTime(this.enabled ? this.ambience * 0.6 : 0, this.ctx.currentTime, 0.1);
+    setAmbience(v) { this.ambience = v; this.applyBuses(); },
+    setMusic(v) { this.music = v; this.applyBuses(); },
+    setEnabled(b) { this.enabled = b; this.applyBuses(); },
+    // the Sound on/off switch mutes every bus; each slider sets its own level
+    applyBuses() {
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      if (this.ambBus) this.ambBus.gain.setTargetAtTime(this.enabled ? this.ambience * 0.6 : 0, now, 0.1);
+      if (this.musicBus) this.musicBus.gain.setTargetAtTime(this.enabled ? this.music * 0.5 : 0, now, 0.1);
     },
 
     play(name, opts = {}) {

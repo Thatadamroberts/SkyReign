@@ -55,6 +55,12 @@ Then visit http://localhost:8000.
   - Banners appear as you level up.
 - **Day and night**: every four minutes night falls for about 90 seconds. Night uses a darker look over the same art: a moonlit colour grade, glowing windows and levitation crystals, troops carrying torches, fog, embers and lightning. The timer panel counts down to dusk and dawn.
 - **Ambience**: generated in code, with its own volume slider in Settings. Wind plays all the time; birdsong and distant war drums play by day; crickets, owls, a low drone and thunder play at night.
+- **Chaos Mode**: pick Chaos next to Take Flight on the weapon screen.
+  - The game runs 1.5× faster and enemies deal 2× damage.
+  - The whole run is one endless stormy night, with rain, frequent lightning and storm ambience.
+  - Generated battle music plays (Chaos only, with its own Music volume slider). A ticking clock and war drums speed up as the run goes on, more layers join as it intensifies, and a heartbeat comes in at low health.
+  - Chaos earns double Crowns and keeps its own best records.
+  - The tuning constants `CHAOS_SPEED` and `CHAOS_DAMAGE` are at the top of `js/game.js`.
 - **Meta progression**: Crowns earned each run buy permanent upgrades and new starting weapons in the Royal Archive. Progress is saved in `localStorage`.
 - **Game feel**: screen shake, projectile trails, hit flashes, explosions, damage numbers, magnetised loot, smoke and fire on a damaged castle, and falling corpses. Sound effects are generated in code with WebAudio, and there are audio hooks for adding real samples later.
 
@@ -63,7 +69,7 @@ Then visit http://localhost:8000.
 ```
 index.html            page shell + HUD markup
 css/style.css         all UI styling
-js/core/              utils (math, noise, spatial grid), audio, ambience, input
+js/core/              utils (math, noise, spatial grid), audio, ambience, music, input
 js/data/              weapons, enemies, upgrades, meta-progression (pure data + small hooks)
 js/art/               procedural art: castle, weapons, enemies, terrain/clouds, UI icons
 js/entities/          castle, enemy AI behaviours, visual effects

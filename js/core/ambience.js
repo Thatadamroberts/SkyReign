@@ -3,6 +3,7 @@
 // Always: wind high above the countryside.
 // Day: birdsong and the distant war drums of the pursuing army.
 // Night: crickets, owls, a low brooding drone and thunder with the lightning.
+// Storm (Chaos Mode): howling wind, driving rain, the drone and frequent thunder.
 (function (SR) {
   const U = SR.U;
 
@@ -45,10 +46,19 @@
       }
       this.drone = c.createGain(); this.drone.gain.value = 0;
       lp.connect(this.drone); this.drone.connect(bus);
+
+      // Rain (storm only): looping noise band-limited to a hiss.
+      const rain = c.createBufferSource();
+      rain.buffer = A.noiseBuf; rain.loop = true; rain.playbackRate.value = 0.93;
+      const rhp = c.createBiquadFilter(); rhp.type = 'highpass'; rhp.frequency.value = 1200;
+      const rlp = c.createBiquadFilter(); rlp.type = 'lowpass'; rlp.frequency.value = 7000;
+      this.rain = c.createGain(); this.rain.gain.value = 0;
+      rain.connect(rhp); rhp.connect(rlp); rlp.connect(this.rain); this.rain.connect(bus);
+      rain.start();
     },
 
     // mode: 'play' (in a run), 'menu', 'dim' (paused/shop/level-up/game over), 'off'
-    update(dt, night, mode) {
+    update(dt, night, mode, storm = false) {
       if (!this.started) return;
       const A = SR.Audio, c = A.ctx;
       if (c.state !== 'running') return;
@@ -56,9 +66,10 @@
       const presence = mode === 'play' ? 1 : mode === 'menu' ? 0.7 : mode === 'dim' ? 0.45 : 0;
       this.presence = presence;
       this.night = night;
-      this.wind.gain.setTargetAtTime(presence * (0.22 + 0.14 * night), now, 0.6);
-      this.drone.gain.setTargetAtTime(presence * 0.07 * night, now, 1.2);
-      if (presence <= 0 || !A.enabled || A.ambience <= 0) return;
+      this.wind.gain.setTargetAtTime(presence * (storm ? 0.5 : 0.22 + 0.14 * night), now, 0.6);
+      this.drone.gain.setTargetAtTime(presence * 0.07 * (storm ? 1 : night), now, 1.2);
+      this.rain.gain.setTargetAtTime(storm ? presence * 0.32 : 0, now, 0.8);
+      if (presence <= 0 || !A.enabled || A.ambience <= 0 || storm) return; // the storm drowns out wildlife
 
       const t = this.timers;
       for (const k in t) t[k] -= dt;

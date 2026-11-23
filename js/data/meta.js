@@ -25,9 +25,11 @@
     unlocked: { ballista: true },
     startWeapon: 'ballista',
     best: { time: 0, kills: 0, level: 0, bosses: 0 },
+    bestChaos: { time: 0, kills: 0, level: 0, bosses: 0 },
+    chaos: false,
     runs: 0,
     victories: 0,
-    settings: { sound: true, volume: 0.6, ambience: 0.5, shake: true, damageNumbers: true },
+    settings: { sound: true, volume: 0.6, ambience: 0.5, music: 0.6, shake: true, damageNumbers: true },
   });
 
   SR.Save = {
@@ -41,6 +43,7 @@
           this.data = Object.assign(base, d);
           this.data.settings = Object.assign(defaults().settings, d.settings || {});
           this.data.best = Object.assign(defaults().best, d.best || {});
+          this.data.bestChaos = Object.assign(defaults().bestChaos, d.bestChaos || {});
           this.data.meta = d.meta || {};
           this.data.unlocked = Object.assign({ ballista: true }, d.unlocked || {});
         }
@@ -54,6 +57,6 @@
 
   // Crowns awarded at the end of a run.
   SR.computeCrowns = function (s) {
-    return Math.floor(s.time / 12 + s.kills / 30 + s.bosses * 30 + s.level * 1.5 + s.elites * 3 + (s.victory ? 100 : 0));
+    return Math.floor(s.time / 12 + s.kills / 30 + s.bosses * 30 + s.level * 1.5 + s.elites * 3 + (s.victory ? 100 : 0)) * (s.chaos ? 2 : 1);
   };
 })(window.SR);
